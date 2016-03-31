@@ -34,6 +34,7 @@ public:
                      const time_value &delay,
                      const time_value &interval = time_value::zero);
 
+  int register_signal(ev_handler *eh, const int signum);
 private:
   void dispatch_events(const int nfds);
 private:

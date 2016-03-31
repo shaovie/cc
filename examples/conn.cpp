@@ -2,6 +2,7 @@
 #include "async_reactor_notify.h"
 #include "svc_handler.h"
 #include "timer_handler.h"
+#include "signal_handler.h"
 #include "acceptor.h"
 #include "connector.h"
 #include "mblock.h"
@@ -42,7 +43,7 @@ public:
 
   virtual int open(ev_handler *)
   {
-    fprintf(stderr, "connect %d ok size=%d\n", this->port_, i_connector.size());
+    fprintf(stderr, "connect %d ok \n", this->port_);
     return -1;
   }
 
@@ -90,6 +91,16 @@ public:
   }
 };
 
+class signal_hup : public signal_handler
+{
+public:
+  virtual int handle_signal()
+  {
+    fprintf(stderr, "catch signal hup\n");
+    return 0;
+  }
+};
+
 int main(int argc, char *argv[])
 {
   remote_addr = argv[1];
@@ -109,6 +120,7 @@ int main(int argc, char *argv[])
     return -1;
   }
   r.schedule_timer(new loop_timer(), time_value(1, 0), time_value(2, 500*1000));
+  r.register_signal(new signal_hup(), SIGHUP);
   r.run_event_loop();
   return 0;
 }

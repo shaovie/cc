@@ -6,10 +6,12 @@
 #include <cstring>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/epoll.h>
 #include <sys/time.h>
+#include <sys/epoll.h>
+#include <sys/signal.h>
 #include <sys/resource.h>
 #include <sys/timerfd.h>
+#include <sys/signalfd.h>
 
 namespace reactor_help
 {
@@ -27,7 +29,8 @@ namespace reactor_help
 
     return events;
   }
-}
+};
+
 class reactor_event_tuple
 {
 public:
@@ -211,6 +214,21 @@ int reactor::schedule_timer(ev_handler *eh,
     return -1;
 
   eh->set_handle(fd);
+  eh->set_reactor(this);
+  return this->register_handler(eh, ev_handler::read_mask);
+}
+int reactor::register_signal(ev_handler *eh, const int signum)
+{
+  sigset_t mask;
+  sigemptyset(&mask);
+  sigaddset(&mask, signum);
+  if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1)
+    return -1;
+  int sfd = signalfd(-1, &mask, SFD_NONBLOCK | SFD_CLOEXEC);
+  if (sfd == -1)
+    return -1;
+
+  eh->set_handle(sfd);
   eh->set_reactor(this);
   return this->register_handler(eh, ev_handler::read_mask);
 }
