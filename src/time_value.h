@@ -19,8 +19,6 @@ public:
   // constant "0".
   static const time_value zero;
 
-  static const time_value start_time;
-
   time_value() { tv_.tv_sec = 0; tv_.tv_usec = 0; }
 
   time_value(const time_value& tv)
