@@ -30,7 +30,7 @@ static const char *ilog_type_list[] =
   "ALLS"
 };
 
-#define LL_SHUT_DOWN_BIT   0
+#define LL_SHUTDOWN_BIT    0
 #define LL_TRACE_BIT       1
 #define LL_DEBUG_BIT       2
 #define LL_WNING_BIT       3
@@ -46,7 +46,7 @@ enum
   // = Note, this first argument *must* start at 1!
 
   // Shutdown the logger
-  LL_SHUTDOWN = 1L << LL_SHUT_DOWN_BIT,
+  LL_SHUTDOWN = 1L << LL_SHUTDOWN_BIT,
   LL_TRACE	  = 1L << LL_TRACE_BIT,	
   LL_DEBUG	  = 1L << LL_DEBUG_BIT,
   LL_WNING	  = 1L << LL_WNING_BIT,
@@ -72,9 +72,10 @@ namespace help
 
     char *s = out_str;
     for (int i = 0; *in_str && i < len; ++in_str) {
-      if (isspace((int)*in_str) == 0)
+      if (::isspace((int)*in_str) == 0)
         *s++ = *in_str;
     }
+
     return s;
   }
   int split_log_type(const char *value_p)
@@ -94,7 +95,9 @@ namespace help
           l_type |= 1L << j;
       }
     }
-    if (l_type & LL_ALLS) l_type |= LL_ALL_TYPE;
+    if (l_type & LL_ALLS)
+      l_type |= LL_ALL_TYPE;
+
     return l_type;
   }
 }
@@ -352,7 +355,7 @@ int ilog_impl::load_config(const char *path)
 {
   FILE *f = ::fopen(path, "r");
   if (f == NULL) {
-    fprintf(stderr, "Error: ilog - open %s failed!\n", path);
+    ::fprintf(stderr, "Error: ilog - open %s failed!\n", path);
     return -1;
   }
 
@@ -364,7 +367,7 @@ int ilog_impl::load_config(const char *path)
 
   char line_bf[512] = {0};
   bool find_base = false;
-  while (fgets(line_bf, sizeof(line_bf), f)) {
+  while (::fgets(line_bf, sizeof(line_bf), f)) {
     char line[512] = {0};
     ::memset(line, '\0', sizeof(line));
     help::strstrip_all(line_bf, line, sizeof(line));
@@ -407,10 +410,11 @@ int ilog_impl::load_config(const char *path)
         this->insert_ilog_obj(new ilog_obj(new ilog_obj_impl(m_name, l_type, this)));
     }
   }
-  fclose(f);
+  if (f)
+  ::fclose(f);
 
   if (!find_base) {
-    fprintf(stderr, "Error: ilog - not found '%s' module!\n", BASE_MODULE_NAME);
+    ::fprintf(stderr, "Error: ilog - not found '%s' module!\n", BASE_MODULE_NAME);
     return -1;
   }
   this->update_all_ilog_obj();
@@ -517,19 +521,23 @@ ilog_obj::ilog_obj(ilog_obj_impl *i) : impl_(i) { }
 int ilog_obj::log(const char *record, const int len)
 { return this->impl_->ilog_impl_->output(record, len); }
 // == Special log method
-# define SHORT_CODE(LB, LT)  if (!(this->impl_->log_type_ & LT) ||       \
-                                 (this->impl_->log_type_ & LL_SHUTDOWN)) \
-return 0;                                                         \
-va_list va; va_start(va, format);                                 \
-int ret = this->impl_->ilog_impl_->log(LB, this->impl_->m_name_, format, va);   \
-va_end(va);                                                       \
-return ret
+# define SHORT_CODE(LB, LT) if (!(this->impl_->log_type_ & LT) ||        \
+                                (this->impl_->log_type_ & LL_SHUTDOWN))  \
+                              return 0;                                  \
+                            va_list va; va_start(va, format);            \
+                            int ret = this->impl_->ilog_impl_->log(LB,   \
+                                                                   this->impl_->m_name_, \
+                                                                   format, \
+                                                                   va);  \
+                            va_end(va);                                  \
+                            return ret
 
-int ilog_obj::trace(const char *format, ...)    { SHORT_CODE(LL_TRACE_BIT, LL_TRACE); }
-int ilog_obj::debug(const char *format, ...)    { SHORT_CODE(LL_DEBUG_BIT, LL_DEBUG); }
-int ilog_obj::wning(const char *format, ...)    { SHORT_CODE(LL_WNING_BIT, LL_WNING); }
-int ilog_obj::error(const char *format, ...)    { SHORT_CODE(LL_ERROR_BIT, LL_ERROR); }
-int ilog_obj::rinfo(const char *format, ...)    { SHORT_CODE(LL_RINFO_BIT, LL_RINFO); }
-int ilog_obj::fatal(const char *format, ...)    { SHORT_CODE(LL_FATAL_BIT, LL_FATAL); }
+int ilog_obj::trace(const char *format, ...) { SHORT_CODE(LL_TRACE_BIT, LL_TRACE); }
+int ilog_obj::debug(const char *format, ...) { SHORT_CODE(LL_DEBUG_BIT, LL_DEBUG); }
+int ilog_obj::wning(const char *format, ...) { SHORT_CODE(LL_WNING_BIT, LL_WNING); }
+int ilog_obj::error(const char *format, ...) { SHORT_CODE(LL_ERROR_BIT, LL_ERROR); }
+int ilog_obj::rinfo(const char *format, ...) { SHORT_CODE(LL_RINFO_BIT, LL_RINFO); }
+int ilog_obj::fatal(const char *format, ...) { SHORT_CODE(LL_FATAL_BIT, LL_FATAL); }
 
 #undef SHORT_CODE
+

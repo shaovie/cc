@@ -21,10 +21,7 @@ namespace reactor_help
     if (BIT_ENABLED(mask, ev_handler::read_mask | ev_handler::accept_mask))
       SET_BITS(events, EPOLLIN);
 
-    if (BIT_ENABLED(mask, ev_handler::connect_mask))
-      SET_BITS(events, EPOLLOUT);
-
-    if (BIT_ENABLED(mask, ev_handler::write_mask))
+    if (BIT_ENABLED(mask, ev_handler::write_mask | ev_handler::connect_mask))
       SET_BITS(events, EPOLLOUT);
 
     return events;
@@ -84,8 +81,7 @@ int reactor::register_handler(ev_handler *eh, reactor_mask mask)
   if (handle < 0 || handle >= this->max_fds_)
     return -1;
 
-  struct epoll_event epev;
-  ::memset(&epev, 0, sizeof(epoll_event));
+  struct epoll_event epev = {0, {(uint64_t)0}};
   epev.data.ptr = eh;
 
   reactor_event_tuple &r_et = this->handler_rep_[handle];
@@ -128,8 +124,7 @@ int reactor::remove_handler(ev_handler *eh, reactor_mask mask)
     return 0; // already removed
 
   if (r_et.mask_ & (~mask)) {
-    struct epoll_event epev;
-    ::memset(&epev, 0, sizeof(epoll_event));
+    struct epoll_event epev = {0, {(uint64_t)0}};
     epev.data.ptr = eh;
 
     epev.events = reactor_help::reactor_mask_to_epoll_event(r_et.mask_ & (~mask));

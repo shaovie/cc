@@ -32,6 +32,7 @@
 																				 msg_queue.cpp  \
 																				 ilog.cpp  \
                                          async_reactor_notify.cpp  \
+                                         process.cpp  \
                                          reactor.cpp
 
                                 CFILES = 

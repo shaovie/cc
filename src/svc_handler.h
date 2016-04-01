@@ -19,13 +19,11 @@ class svc_handler : public ev_handler
 public:
   svc_handler() : handle_(-1) { }
 
-  virtual ~svc_handler()
-  { this->shutdown_i(); }
+  virtual ~svc_handler() { this->shutdown_i(); }
 
   virtual int open(ev_handler *) { return -1; }
 
-  virtual int close(reactor_mask mask)
-  { return this->handle_close(mask); }
+  virtual int close(reactor_mask mask) { return this->handle_close(mask); }
 
   virtual int handle_close(reactor_mask )
   {
@@ -41,15 +39,13 @@ public:
 protected:
   void shutdown_i(void)
   {
-    if (this->get_reactor()) {
-      reactor_mask mask = ev_handler::all_events_mask|ev_handler::dont_call;
-
-      if (this->get_handle() != -1)
-        this->get_reactor()->remove_handler(this, mask);
-    }
-    //
-    if (this->get_handle() != -1) {
-      ::close(this->get_handle());
+    reactor *r = this->get_reactor();
+    if (r != NULL)
+      r->remove_handler(this, ev_handler::all_events_mask|ev_handler::dont_call);
+    
+    int handle = this->get_handle();
+    if (handle != -1) {
+      ::close(handle);
       this->set_handle(-1);
     }
     this->set_reactor(NULL);
