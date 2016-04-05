@@ -32,7 +32,7 @@ public:
   { }
   VALUE *find(const KEY &k)
   {
-    guard<thread_mutex> g(this->obj_map_mtx_);
+    guard<thread_mutex> g(this->mtx_);
     obj_hash_map_itor itor = this->obj_map_.find(k);
     if (itor == this->obj_map_.end())
       return NULL;
@@ -41,7 +41,7 @@ public:
   }
   int insert(const KEY &k, VALUE *v)
   {
-    guard<thread_mutex> g(this->obj_map_mtx_);
+    guard<thread_mutex> g(this->mtx_);
     obj_hash_map_itor itor = this->obj_map_.find(k);
     if (itor == this->obj_map_.end()) {
       this->drop_one();
@@ -56,12 +56,12 @@ public:
   }
   void remove(const KEY &k)
   {
-    guard<thread_mutex> g(this->obj_map_mtx_);
+    guard<thread_mutex> g(this->mtx_);
     this->remove_i(k);
   }
   int size() const
   { 
-    guard<thread_mutex> g(this->obj_map_mtx_);
+    guard<thread_mutex> g(this->mtx_);
     return this->obj_map_.size();
   }
 private:
@@ -102,7 +102,7 @@ private:
   ALLOCATOR allocator_;
   obj_pool<cache_obj<KEY, VALUE>, obj_pool_std_allocator<cache_obj<KEY, VALUE> > > cobj_pool_;
   cobj_list<KEY, VALUE> cobj_list_;
-  thread_mutex obj_map_mtx_;
+  thread_mutex mtx_;
 };
 
 template<typename KEY, typename VALUE>
