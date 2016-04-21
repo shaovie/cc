@@ -1,4 +1,5 @@
 #include "process.h"
+#include "date_time.h"
 
 #include <pwd.h>
 #include <time.h>
@@ -16,8 +17,6 @@
 #include <sys/prctl.h>
 #include <sys/file.h>
 
-#include "date_time.h"
-
 extern char **environ;
 
 static int s_child_pid = -1;
@@ -28,7 +27,7 @@ char **process::save_argv(int argc, char *argv[])
   new_argv[argc] = NULL;
   for (int i = 0; i < argc; ++i)
     new_argv[i] = ::strdup(argv[i]);
-  
+
   return new_argv;
 }
 void process::set_proc_title(char *argv[], const char *title)
@@ -39,9 +38,9 @@ void process::set_proc_title(char *argv[], const char *title)
     return ;
   }
   size_t env_size = 0;
-  for (int i = 0; environ[i]; ++i) {
+  for (int i = 0; environ[i]; ++i)
     env_size += ::strlen(environ[i]) + 1;
-  }
+  
   char *env_p = (char *)::malloc(env_size);
   char *title_end_p = argv[0];
   for (int i = 0; argv[i]; ++i) {
@@ -86,13 +85,12 @@ int process::get_max_fds()
 int process::runas(const char *uid)
 {
   struct passwd *pw = NULL;
-  if ((pw = ::getpwnam(uid)) == NULL) {
+  if ((pw = ::getpwnam(uid)) == NULL)
     return -1;
-  } else if (::setgid(pw->pw_gid) == -1) {
+  else if (::setgid(pw->pw_gid) == -1)
     return -1;
-  } else if (::setuid(pw->pw_uid) == -1) {
+  else if (::setuid(pw->pw_uid) == -1)
     return -1;
-  }
   ::endpwent();
   return 0;
 }
@@ -123,9 +121,8 @@ int process::daemon()
   if (child_pid < 0) {
     fprintf(stderr, "Error: fork failed! %s\n", ::strerror(errno));
     ::exit(1);
-  } else if (child_pid > 0) {
+  } else if (child_pid > 0)
     ::exit(0);
-  }
 
   if (::setsid() == -1) {
     fprintf(stderr, "Error: setsid failed! %s\n", ::strerror(errno));
@@ -175,16 +172,16 @@ void process::to_guard_mode(const char *log_path)
     if (s_child_pid < 0) {
       fprintf(stderr, "Error: fork failed! %s\n", ::strerror(errno));
       ::exit(1);
-    } else if (s_child_pid == 0) {
+    } else if (s_child_pid == 0)
       break;
-    }
+    
     // parent process !
     int status = 0;
     if (::waitpid(s_child_pid, &status, 0) < 0) {
       fprintf(stderr, "Error: fork failed! %s\n", ::strerror(errno));
       ::exit(1);
     }
-    
+
     int fd = ::open(log_path, O_CREAT | O_WRONLY | O_APPEND, 0644);
     if (fd == -1) {
       fprintf(stderr, "Error: open %s failed! %s\n", log_path, ::strerror(errno));
@@ -211,7 +208,7 @@ void process::to_guard_mode(const char *log_path)
       ::close(fd);
     }
 
-    ::sleep(2);
+    ::sleep(1);
   }
 }
 int process::child_pid()
