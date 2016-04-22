@@ -3,6 +3,7 @@
 #include "svc_handler.h"
 #include "acceptor.h"
 #include "mblock.h"
+#include "process.h"
 #include "guard.h"
 #include "task.h"
 #include "thread_mutex.h"
@@ -82,7 +83,7 @@ public:
     if (v_end != NULL) {
       *v_end = key_p + len;
 
-      while (*v_end > key_p && isspace(**v_end))
+      while (*v_end > key_p && ::isspace(**v_end))
         --(*v_end);
       ++(*v_end);
     }
@@ -100,11 +101,7 @@ public:
 protected:
   virtual int svc()
   {
-    cpu_set_t cpu_mask;
-    CPU_ZERO(&cpu_mask);
-    CPU_SET(this->cpu_idx_, &cpu_mask);
-
-    if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_mask), &cpu_mask) == -1)
+    if (process::pthread_setaffinity(pthread_self(), this->cpu_idx_) == -1)
       fprintf(stderr, "set thread affinity failed\n");
     this->reactor_->run_event_loop();
     return 0;

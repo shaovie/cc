@@ -31,6 +31,7 @@
                                          task.cpp  \
 																				 msg_queue.cpp  \
 																				 ilog.cpp  \
+																				 util.cpp  \
                                          async_reactor_notify.cpp  \
                                          process.cpp  \
                                          reactor.cpp

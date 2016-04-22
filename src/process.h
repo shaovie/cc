@@ -10,6 +10,8 @@
 #ifndef PROCESS_H_
 #define PROCESS_H_
 
+#include <pthread.h>
+
 class process
 {
 public:
@@ -31,6 +33,8 @@ public:
 
   static void to_guard_mode(const char *log_path);
   static int child_pid();
+
+  static int pthread_setaffinity(pthread_t thr_id, const int cpu_id);
 };
 
 #endif // PROCESS_H_

@@ -1,4 +1,5 @@
 #include "ilog.h"
+#include "util.h"
 
 // Lib header
 
@@ -65,19 +66,6 @@ enum
 
 namespace help
 {
-  char *strstrip_all(const char *in_str, char *out_str, int len)
-  {
-    if (in_str == NULL || out_str == NULL) 
-      return NULL;
-
-    char *s = out_str;
-    for (int i = 0; *in_str && i < len; ++in_str) {
-      if (::isspace((int)*in_str) == 0)
-        *s++ = *in_str;
-    }
-
-    return s;
-  }
   int split_log_type(const char *value_p)
   {
     char *tok_p = NULL;
@@ -370,7 +358,7 @@ int ilog_impl::load_config(const char *path)
   while (::fgets(line_bf, sizeof(line_bf), f)) {
     char line[512] = {0};
     ::memset(line, '\0', sizeof(line));
-    help::strstrip_all(line_bf, line, sizeof(line));
+    util::strstrip_all(line_bf, line, sizeof(line));
     if (line[0] == '#')
       continue;
 

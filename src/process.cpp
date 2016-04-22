@@ -215,3 +215,12 @@ int process::child_pid()
 {
   return s_child_pid;
 }
+int process::pthread_setaffinity(pthread_t thr_id, const int cpu_id)
+{
+  cpu_set_t cm;
+  CPU_ZERO(&cm);
+  CPU_SET(cpu_id, &cm);
+
+  return ::pthread_setaffinity_np(thr_id, sizeof(cm), &cm) != 0 ? -1 : 0;
+}
+
