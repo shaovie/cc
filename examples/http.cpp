@@ -1,6 +1,7 @@
 #include "reactor.h"
 #include "async_reactor_notify.h"
 #include "svc_handler.h"
+#include "timer_handler.h"
 #include "acceptor.h"
 #include "mblock.h"
 #include "process.h"
@@ -21,6 +22,8 @@
 #include <sched.h>
 
 //#define TP_REACTOR 1
+
+int64_t g_total_request = 1;
 
 class sys_log : public singleton<sys_log>, public ilog
 {
@@ -240,12 +243,14 @@ public:
                                                 "Connection",
                                                 sizeof("Connection") - 1,
                                                 NULL);
-      static char http_resp[] = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: 5\r\n\r\nhello";
-      static char http_resp_k[] = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 5\r\n\r\nhello";
+      static char http_resp[] = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Length: 12\r\n\r\nhello world!";
+      static char http_resp_k[] = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 12\r\n\r\nhello world!";
       if (connection_p == NULL || connection_p[0] == 'c' || connection_p[0] == 'C') {
+        g_total_request++;
         socket::send(this->get_handle(), http_resp, sizeof(http_resp) - 1);
         return -1;
       } else {
+        g_total_request++;
         int ret = socket::send(this->get_handle(), http_resp_k, sizeof(http_resp_k) - 1);
         if (ret == -1)
           return -1;
@@ -277,6 +282,22 @@ void client_dispatch::handle_notify()
       c->close(ev_handler::accept_mask);
   }
 }
+class loop_timer : public timer_handler
+{
+public:
+  virtual int handle_timeout()
+  {
+    struct timeval now;
+    ::gettimeofday(&now, NULL);
+
+    char log_time[64] = {0};
+    struct tm tm_;
+    ::localtime_r(&(now.tv_sec), &tm_);
+    ::strftime(log_time, sizeof(log_time), "%Y-%m-%d %H:%M:%S", &tm_);
+    fprintf(stderr, "[%s.%03d] processed %ld \n", log_time, (int)((now.tv_usec + 999) / 1000), g_total_request);
+    return 0;
+  }
+};
 int main()
 {
   int port = 7777;
@@ -333,6 +354,7 @@ int main()
     fprintf(stderr, "acceptor open failed![%s]\n", strerror(errno));
     return -1;
   }
+  r.schedule_timer(new loop_timer(), time_value(1, 0), time_value(10, 0));
   r.run_event_loop();
 #endif
   return 0;
