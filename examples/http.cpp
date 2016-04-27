@@ -2,6 +2,7 @@
 #include "async_reactor_notify.h"
 #include "svc_handler.h"
 #include "timer_handler.h"
+#include "signal_handler.h"
 #include "acceptor.h"
 #include "mblock.h"
 #include "process.h"
@@ -199,7 +200,7 @@ public:
 
     int handle_one = false;
     do {
-      ret = this->handle_data();
+      ret = this->handle_data(handle);
       if (ret == 1) {
         handle_one = 1;
         if (this->recv_buff_->length() == 0)
@@ -212,7 +213,7 @@ public:
 
     return ret == -1 ? -1 : 0;
   }
-  int handle_data()
+  int handle_data(const int handle)
   {
     static int count = 1;
     char *req = this->recv_buff_->rd_ptr();
@@ -247,11 +248,11 @@ public:
       static char http_resp_k[] = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Length: 12\r\n\r\nhello world!";
       if (connection_p == NULL || connection_p[0] == 'c' || connection_p[0] == 'C') {
         g_total_request++;
-        socket::send(this->get_handle(), http_resp, sizeof(http_resp) - 1);
+        socket::send(handle, http_resp, sizeof(http_resp) - 1);
         return -1;
       } else {
         g_total_request++;
-        int ret = socket::send(this->get_handle(), http_resp_k, sizeof(http_resp_k) - 1);
+        int ret = socket::send(handle, http_resp_k, sizeof(http_resp_k) - 1);
         if (ret == -1)
           return -1;
         return 1;
@@ -295,6 +296,15 @@ public:
     ::localtime_r(&(now.tv_sec), &tm_);
     ::strftime(log_time, sizeof(log_time), "%Y-%m-%d %H:%M:%S", &tm_);
     fprintf(stderr, "[%s.%03d] processed %ld \n", log_time, (int)((now.tv_usec + 999) / 1000), g_total_request);
+    return 0;
+  }
+};
+class signal_int : public signal_handler
+{
+public:
+  virtual int handle_signal()
+  {
+    ::exit(1);
     return 0;
   }
 };
@@ -355,6 +365,7 @@ int main()
     return -1;
   }
   r.schedule_timer(new loop_timer(), time_value(1, 0), time_value(10, 0));
+  r.register_signal(new signal_int(), SIGINT);
   r.run_event_loop();
 #endif
   return 0;
