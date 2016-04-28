@@ -12,22 +12,12 @@
 
 #include "svc_handler.h"
 
-#include <sys/signalfd.h>
-
 class signal_handler : public svc_handler
 {
 public:
-  signal_handler() :
-    svc_handler()
-  { }
+  signal_handler();
 
-  virtual int handle_input(const int handle)
-  {
-    struct signalfd_siginfo fdsi;
-    ::read(handle, &fdsi, sizeof(struct signalfd_siginfo));
-
-    return this->handle_signal();
-  }
+  virtual int handle_input(const int handle);
 
   virtual int handle_signal() = 0;
 };

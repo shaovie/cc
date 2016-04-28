@@ -15,17 +15,9 @@
 class timer_handler : public svc_handler
 {
 public:
-  timer_handler() :
-    svc_handler()
-  { }
+  timer_handler();
 
-  virtual int handle_input(const int handle)
-  {
-    uint64_t exp = 0;
-    ::read(handle, &exp, sizeof(uint64_t));
-
-    return this->handle_timeout();
-  }
+  virtual int handle_input(const int handle);
 
   virtual int handle_timeout() = 0;
 };

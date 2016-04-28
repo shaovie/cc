@@ -32,6 +32,8 @@
 																				 msg_queue.cpp  \
 																				 ilog.cpp  \
 																				 util.cpp  \
+                                         timer_handler.cpp  \
+                                         signal_handler.cpp  \
                                          async_reactor_notify.cpp  \
                                          process.cpp  \
                                          reactor.cpp
