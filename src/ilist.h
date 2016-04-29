@@ -35,7 +35,7 @@ public:
     free_obj_list_(NULL)
   { }
 
-  ~ilist()
+  virtual ~ilist()
   {
     this->clear();
     for (ilist_node<NODE> *itor = this->free_obj_list_; itor != NULL; ) {

@@ -60,7 +60,7 @@ public:
     }
   }
 
-  ~ihash()
+  virtual ~ihash()
   {
     for (unsigned int i = 0; i < this->size_; ++i) {
       ihash_node<KEY, VALUE> *node = this->table_[i];

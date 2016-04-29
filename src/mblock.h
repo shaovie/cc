@@ -40,7 +40,7 @@ public:
     next_(NULL)
   { }
 
-  ~mblock()
+  virtual ~mblock()
   {
     if (this->release_data_)
       assert(0);
