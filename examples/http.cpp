@@ -24,7 +24,7 @@
 
 //#define TP_REACTOR 1
 
-int64_t g_total_request = 1;
+int64_t g_total_request = 0;
 
 class sys_log : public singleton<sys_log>, public ilog
 {
@@ -308,9 +308,10 @@ public:
     return 0;
   }
 };
-int main()
+int main(int argc, char *argv[])
 {
-  int port = 7777;
+  int cpu_idx = ::atoi(argv[1]);
+  int port = ::atoi(argv[2]);
 
   signal(SIGPIPE, SIG_IGN);
   signal(SIGHUP, SIG_IGN);
@@ -347,7 +348,7 @@ int main()
   }
   m_reactor[0].run_event_loop();
 #else
-  CPU_SET(2, &mask);
+  CPU_SET(cpu_idx, &mask);
   if (pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) < 0)
     fprintf(stderr, "set main thread affinity failed\n");
   reactor r;

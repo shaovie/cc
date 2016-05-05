@@ -146,6 +146,24 @@ public:
   MBLOCK_WRITE_OPERATOR(double);
 #undef MBLOCK_READ_OPERATOR
 #undef MBLOCK_WRITE_OPERATOR
+  mblock & operator >>(mblock &mb)
+  {
+    unsigned int copy_len = mb.space();
+    if (copy_len > this->length())
+      copy_len = this->length();
+    mb.copy(this->rd_ptr(), copy_len);
+    this->rd_ptr(copy_len);
+    return *this;
+  }
+  mblock & operator <<(mblock &mb)
+  {
+    unsigned int copy_len = this->space();
+    if (copy_len > mb.length())
+      copy_len = mb.length();
+    this->copy(mb.rd_ptr(), copy_len);
+    mb.rd_ptr(copy_len);
+    return *this;
+  }
 protected:
   bool  release_data_;
   
