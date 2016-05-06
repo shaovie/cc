@@ -24,6 +24,9 @@ namespace reactor_help
     if (BIT_ENABLED(mask, ev_handler::write_mask | ev_handler::connect_mask))
       SET_BITS(events, EPOLLOUT);
 
+    if (BIT_ENABLED(mask, ev_handler::epollet_mask))
+      SET_BITS(events, EPOLLET);
+
     return events;
   }
 };

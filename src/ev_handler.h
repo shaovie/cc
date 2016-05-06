@@ -23,16 +23,18 @@ public:
   enum 
   {
     null_mask       = 0,
-    read_mask       = 1L << 1,
-    write_mask      = 1L << 2,
-    accept_mask     = 1L << 3,
-    connect_mask    = 1L << 4,
-    error_mask      = 1L << 5,
+    error_mask      = 1L << 1,
+    read_mask       = 1L << 2,
+    write_mask      = 1L << 3,
+    accept_mask     = 1L << 4,
+    connect_mask    = 1L << 5,
+    epollet_mask    = 1L << 6,
     dont_call       = 1L << 31,
 
     all_events_mask = read_mask  | \
                       write_mask   |
                       accept_mask  |
+                      epollet_mask |
                       connect_mask ,
   };
 public:
